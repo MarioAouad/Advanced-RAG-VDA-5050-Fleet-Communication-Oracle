@@ -1,0 +1,16 @@
+# Python environment & cache
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment secrets (NEVER commit your keys)
+.env
+
+# Generated Vector Database files (rebuilt via code)
+chroma_db/
+qdrant_storage/
+
+# Dynamic user uploads created at runtime via Streamlit/FastAPI
+data/user_uploads/*
+!data/user_uploads/.gitkeep

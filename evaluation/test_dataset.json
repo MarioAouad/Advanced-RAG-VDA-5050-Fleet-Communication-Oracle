@@ -1,0 +1,263 @@
+{
+  "metadata": {
+    "dataset_name": "VDA-5050 Fleet Communication Oracle - Ground Truth Evaluation Set",
+    "version": "1.0.0",
+    "vda_spec_version": "3.0.0",
+    "created_date": "2026-07-26",
+    "total_questions": 20,
+    "categories": {
+      "A_protocol_text_rules": 8,
+      "B_json_schema_queries": 6,
+      "C_multimodal_diagram_queries": 6
+    },
+    "description": "A curated set of question-answer pairs designed to evaluate retrieval precision, context recall, faithfulness, and answer relevance of the VDA-5050 RAG system. Questions span protocol rules, JSON schema structure, and visual diagram interpretation."
+  },
+  "test_data": [
+    {
+      "id": "A-01",
+      "category": "A_protocol_text_rules",
+      "difficulty": "medium",
+      "question": "What is the recommended MQTT topic structure for a local broker in VDA 5050, and can you provide a concrete example?",
+      "ground_truth_answer": "For a local broker, the suggested MQTT topic structure is: interfaceName/majorVersion/manufacturer/serialNumber/topic. A concrete example is: vda5050/v3/KIT/0001/order. The interfaceName is the name of the used interface, majorVersion is the major version preceded by 'v', manufacturer is the manufacturer of the mobile robot, serialNumber is a unique robot serial number (using characters A-Z, a-z, 0-9, _, ., :, -), and topic is the specific topic name such as 'order' or 'state'. The '/' character shall not be used within any of these fields, and wildcard characters '+' and '#' as well as '$' should not be used.",
+      "ground_truth_contexts": [
+        "Section 4.2 Topic levels: The MQTT topic structure is not strictly defined due to the mandatory topic structure of cloud providers. For a local broker the MQTT topic levels are suggested as: interfaceName/majorVersion/manufacturer/serialNumber/topic. Example: vda5050/v3/KIT/0001/order."
+      ],
+      "source_section": "4.2 Topic levels",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-02",
+      "category": "A_protocol_text_rules",
+      "difficulty": "hard",
+      "question": "What are the four error levels defined in VDA 5050, and what is the expected mobile robot behavior for each level?",
+      "ground_truth_answer": "VDA 5050 defines four error levels: (1) 'WARNING' — does not require immediate attention; the mobile robot can continue its current order and accept new orders; the error might be self-resolving (e.g., a dirty LiDAR scanner). (2) 'URGENT' — requires immediate attention (e.g., low battery); the mobile robot can continue its current order and accept new orders. (3) 'CRITICAL' — requires immediate attention (e.g., trying to pick an object that is not there); the mobile robot shall not continue driving since it cannot continue its current order, but it is able to accept new orders. (4) 'FATAL' — requires user intervention (e.g., losing localization); the mobile robot shall not continue driving since it can neither continue its active order nor accept any new orders. Regardless of the error level, the mobile robot shall never clear its order due to an error.",
+      "ground_truth_contexts": [
+        "Section 6.6.5.1 Error levels: The issues can have four levels: 'WARNING', 'URGENT', 'CRITICAL', and 'FATAL'. A 'WARNING' level issue does not require immediate attention. An 'URGENT' level issue requires immediate attention. A 'CRITICAL' level issue requires immediate attention, the mobile robot shall not continue driving. A 'FATAL' level issue requires user intervention. Regardless of the level, the mobile robot shall never clear its order due to it."
+      ],
+      "source_section": "6.6.5.1 Error levels",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-03",
+      "category": "A_protocol_text_rules",
+      "difficulty": "hard",
+      "question": "Explain the difference between the 'base' and 'horizon' in a VDA 5050 order, and what happens when a mobile robot reaches the decision point without receiving an order update.",
+      "ground_truth_answer": "In VDA 5050, an order's path is split into two parts: the 'base' is the defined route that the mobile robot is allowed to travel, where all nodes and edges have been released by fleet control. The last node of the base is called the 'decision point'. The 'horizon' is the route currently planned by fleet control for the mobile robot to travel after the decision point, but it has not yet been released. The mobile robot shall stop at the decision point if no further nodes and edges are added to the base. Since MQTT is asynchronous and wireless is unreliable, the base cannot be changed — fleet control must assume the base has already been executed. Fleet control can only change the horizon by sending an order update. To ensure fluent movement, fleet control should extend the base before the mobile robot reaches the decision point, if the traffic situation allows.",
+      "ground_truth_contexts": [
+        "Section 6.1.2 Orders and order update: 'Base': the defined route that the mobile robot is allowed to travel. All nodes and edges of the base route have already been released. The last node of the base is called decision point. 'Horizon': the route currently planned by fleet control for the mobile robot to travel after the decision point, not yet released. The mobile robot shall stop at the decision point if no further nodes and edges are added to the base."
+      ],
+      "source_section": "6.1.2 Orders and order update",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-04",
+      "category": "A_protocol_text_rules",
+      "difficulty": "medium",
+      "question": "What MQTT QoS levels does VDA 5050 specify, and which topics use which QoS level?",
+      "ground_truth_answer": "VDA 5050 specifies that MQTT QoS level 0 (Best Effort) shall be used for the topics: order, instantActions, state, factsheet, zoneSet, responses, and visualization. QoS level 1 (At Least Once) shall be used for the topic 'connection'. This distinction is made because the connection topic is critical for detecting unexpected disconnections via the MQTT last will mechanism, while the other topics tolerate potential message loss due to the asynchronous and state-based nature of the protocol.",
+      "ground_truth_contexts": [
+        "Section 4.1 Connection handling, security and QoS: To reduce the communication overhead, the MQTT QoS level 0 (Best Effort) shall be used for the topics order, instantActions, state, factsheet, zoneSet, responses and visualization. QoS level 1 (At Least Once) shall be used for the topic connection."
+      ],
+      "source_section": "4.1 Connection handling, security and QoS",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-05",
+      "category": "A_protocol_text_rules",
+      "difficulty": "hard",
+      "question": "What are the four action blocking types in VDA 5050, and how do they affect driving and parallel execution of other actions?",
+      "ground_truth_answer": "VDA 5050 defines four action blocking types: (1) 'NONE' — allows both automatic driving and parallel execution of other actions. (2) 'SINGLE' — allows automatic driving but does NOT allow parallel execution of other actions. (3) 'SOFT' — allows parallel execution of other actions but does NOT allow automatic driving. (4) 'HARD' — does NOT allow either driving or parallel execution; it is the only allowed action at that time. Actions with blocking type 'NONE' or 'SOFT' are collected for parallel execution. If an action with 'SINGLE' or 'HARD' blocking type is encountered, all previously collected parallel actions must be 'FINISHED' or 'FAILED' before the 'SINGLE' or 'HARD' action can start. If there are no more 'SOFT' or 'HARD' actions in the queue, the mobile robot can resume automatic driving.",
+      "ground_truth_contexts": [
+        "Section 6.2.2 Action blocking types and sequence: NONE: allows driving and parallel execution. SINGLE: allows driving but not parallel execution. SOFT: allows parallel execution but not driving. HARD: is the only allowed action at that time."
+      ],
+      "source_section": "6.2.2 Action blocking types and sequence",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-06",
+      "category": "A_protocol_text_rules",
+      "difficulty": "hard",
+      "question": "How does a mobile robot handle a cancelOrder instant action according to VDA 5050? What happens to running actions that cannot be cancelled?",
+      "ground_truth_answer": "When the mobile robot receives a cancelOrder instant action, it shall attempt to stop as soon as possible. For line-guided robots, this could be the next feasible node; a freely navigating robot shall stop as soon as possible (not merely at the next node). Scheduled actions in the actionStates shall be cancelled and reported as 'FAILED'. Running actions should also be cancelled and reported as 'FAILED'. However, if an action cannot be cancelled (cancelAllowed = false), the actionState shall reflect 'RUNNING' while it is executing, and afterwards report the respective state ('FINISHED' if successful, 'FAILED' if not). While running actions remain in the actionStates, the cancelOrder action shall report 'RUNNING'. After all movement and actions have stopped, the cancelOrder action status reports 'FINISHED'. The mobile robot is then idle and ready to receive new orders. The orderId and orderUpdateId are kept.",
+      "ground_truth_contexts": [
+        "Section 6.1.3 Order cancellation: After receiving cancelOrder, the mobile robot shall attempt to stop as soon as possible. Scheduled actions shall be cancelled and report 'FAILED'. If the action cannot be cancelled, the actionState should reflect 'RUNNING' while running, and after that the respective state. The cancelOrder action reports 'RUNNING' until all actions are done, then 'FINISHED'. The orderId and orderUpdateId are kept."
+      ],
+      "source_section": "6.1.3 Order cancellation",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-07",
+      "category": "A_protocol_text_rules",
+      "difficulty": "medium",
+      "question": "What defines the idle state of a mobile robot in VDA 5050, and what operations are allowed or restricted in this state?",
+      "ground_truth_answer": "A mobile robot is idle if its nodeStates and edgeStates arrays are empty AND all actions in the actionStates array are either 'FINISHED' or 'FAILED'. A new order shall only be accepted if the mobile robot is idle. An order update can be accepted when the mobile robot is idle or during order execution. When idle, a mobile robot can still execute instantActions.",
+      "ground_truth_contexts": [
+        "Section 6.6.8 Idle state of the mobile robot: A mobile robot is idle if its nodeStates and edgeStates are empty and all actions in the actionStates are either 'FINISHED' or 'FAILED'. A new order shall only be accepted if the mobile robot is idle. An order update can be accepted when idle or during order execution. When idle, a mobile robot can execute instantActions."
+      ],
+      "source_section": "6.6.8 Idle state of the mobile robot",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "A-08",
+      "category": "A_protocol_text_rules",
+      "difficulty": "hard",
+      "question": "List all the predefined error types related to order rejection in VDA 5050, their error levels, and under what circumstances each is reported.",
+      "ground_truth_answer": "The predefined error types related to order rejection are: (1) 'VALIDATION_FAILURE' (WARNING) — reported when a malformed order is received. (2) 'UNSUPPORTED_PARAMETER' (CRITICAL) — reported when a message contains an optional parameter the mobile robot cannot process. (3) 'INVALID_ORDER_ACTION' (WARNING) — reported when an order contains actions the robot cannot perform. (4) 'OUTDATED_ORDER_UPDATE' (WARNING) — reported when an order has the correct orderId but an outdated (lower) orderUpdateId. (5) 'SAME_ORDER_UPDATE_ID' (WARNING) — reported when a duplicate order with the same orderId and orderUpdateId is received but with different content. (6) 'ORDER_UPDATE_FOLLOWING_CANCEL' (WARNING) — reported when an order update is received for an already cancelled order. (7) 'OTHER_ORDER_ACTIVE' (WARNING) — reported when a new order with a different orderId is received while another order is active. (8) 'START_NODE_OUT_OF_RANGE' (WARNING) — reported when the first node of a new order is not reachable. (9) 'NO_ROUTE_TO_TARGET' (WARNING) — reported when at least one node in the order is unreachable. (10) 'MOBILE_ROBOT_NOT_AVAILABLE' (WARNING) — reported when the robot is not in AUTOMATIC, SEMIAUTOMATIC, or INTERVENED operating mode. (11) 'UNKNOWN_MAP_ID' (WARNING) — reported when nodes reference an unknown mapId. All these errors are reported until a new order is accepted.",
+      "ground_truth_contexts": [
+        "Section 6.6.5.4 / Table 9 - Predefined error types: Lists error types including VALIDATION_FAILURE (WARNING), UNSUPPORTED_PARAMETER (CRITICAL), INVALID_ORDER_ACTION (WARNING), OUTDATED_ORDER_UPDATE (WARNING), SAME_ORDER_UPDATE_ID (WARNING), ORDER_UPDATE_FOLLOWING_CANCEL (WARNING), OTHER_ORDER_ACTIVE (WARNING), START_NODE_OUT_OF_RANGE (WARNING), NO_ROUTE_TO_TARGET (WARNING), MOBILE_ROBOT_NOT_AVAILABLE (WARNING), UNKNOWN_MAP_ID (WARNING)."
+      ],
+      "source_section": "6.6.5.4 Predefined error types",
+      "source_file": "VDA5050_EN.md"
+    },
+    {
+      "id": "B-01",
+      "category": "B_json_schema_queries",
+      "difficulty": "medium",
+      "question": "What are the required top-level fields in the VDA 5050 order message JSON schema?",
+      "ground_truth_answer": "According to the order.schema, the required top-level fields for the order message are: 'headerId' (integer), 'timestamp' (string in ISO8601 date-time format), 'version' (string in [Major].[Minor].[Patch] format), 'manufacturer' (string), 'serialNumber' (string), 'orderId' (string), 'orderUpdateId' (integer, minimum 0), 'nodes' (array of node objects), and 'edges' (array of edge objects). There are exactly 9 required fields. The optional field 'orderDescription' (string) is for human-readable visualization purposes only.",
+      "ground_truth_contexts": [
+        "order.schema required array: headerId, timestamp, version, manufacturer, serialNumber, orderId, orderUpdateId, nodes, edges."
+      ],
+      "source_section": "order.schema top-level required fields",
+      "source_file": "json_schemas/order.schema"
+    },
+    {
+      "id": "B-02",
+      "category": "B_json_schema_queries",
+      "difficulty": "medium",
+      "question": "What are the required fields inside a 'node' object in the VDA 5050 order schema, and what is the data type for each?",
+      "ground_truth_answer": "Inside the order.schema, a 'node' object has four required fields: (1) 'nodeId' (string) — identifier of the node, may not be unique among nodes of the same order. (2) 'sequenceId' (integer, minimum 0) — tracks the sequence of nodes and edges, shared between both. (3) 'released' (boolean) — true indicates the node is part of the base, false indicates it is part of the horizon. (4) 'actions' (array of action objects) — actions to be executed on the node, empty array if no actions required. Optional fields include 'nodeDescriptor' (string) and 'nodePosition' (JSON object requiring x, y, and mapId).",
+      "ground_truth_contexts": [
+        "order.schema node definition: required fields are nodeId (string), sequenceId (integer, minimum 0), released (boolean), actions (array). Optional: nodeDescriptor (string), nodePosition (object with required x, y, mapId)."
+      ],
+      "source_section": "order.schema definitions/node",
+      "source_file": "json_schemas/order.schema"
+    },
+    {
+      "id": "B-03",
+      "category": "B_json_schema_queries",
+      "difficulty": "hard",
+      "question": "What are all the required fields in the VDA 5050 state message schema, and what enum values are defined for the 'operatingMode' field?",
+      "ground_truth_answer": "The state.schema requires the following top-level fields: headerId, timestamp, version, manufacturer, serialNumber, orderId, orderUpdateId, lastNodeId, lastNodeSequenceId, nodeStates, edgeStates, driving, actionStates, instantActionStates, powerSupply, operatingMode, errors, and safetyState — a total of 18 required fields. The 'operatingMode' field is a string enum with the following values: 'STARTUP', 'AUTOMATIC', 'SEMIAUTOMATIC', 'INTERVENED', 'MANUAL', 'SERVICE', and 'TEACH_IN'.",
+      "ground_truth_contexts": [
+        "state.schema required array: headerId, timestamp, version, manufacturer, serialNumber, orderId, orderUpdateId, lastNodeId, lastNodeSequenceId, nodeStates, edgeStates, driving, actionStates, instantActionStates, powerSupply, operatingMode, errors, safetyState. operatingMode enum: STARTUP, AUTOMATIC, SEMIAUTOMATIC, INTERVENED, MANUAL, SERVICE, TEACH_IN."
+      ],
+      "source_section": "state.schema top-level required fields and operatingMode enum",
+      "source_file": "json_schemas/state.schema"
+    },
+    {
+      "id": "B-04",
+      "category": "B_json_schema_queries",
+      "difficulty": "medium",
+      "question": "What are the required fields in the VDA 5050 connection message schema, and what are the possible values for connectionState?",
+      "ground_truth_answer": "The connection.schema requires the following fields: 'headerId' (integer), 'timestamp' (string, ISO8601 date-time), 'version' (string), 'manufacturer' (string), 'serialNumber' (string), and 'connectionState' (string enum). The 'connectionState' field has four possible values: 'ONLINE' (connection active), 'OFFLINE' (coordinated disconnection), 'HIBERNATING' (connection active but no state messages, for power-saving), and 'CONNECTION_BROKEN' (unexpected disconnection). The connection message is used as the MQTT last will message and must be sent with the retain flag.",
+      "ground_truth_contexts": [
+        "connection.schema required: headerId, timestamp, version, manufacturer, serialNumber, connectionState. connectionState enum: ONLINE, OFFLINE, HIBERNATING, CONNECTION_BROKEN."
+      ],
+      "source_section": "connection.schema",
+      "source_file": "json_schemas/connection.schema"
+    },
+    {
+      "id": "B-05",
+      "category": "B_json_schema_queries",
+      "difficulty": "medium",
+      "question": "What are the required fields for an action inside the instantActions message schema, and what is the constraint on the blockingType field for instant actions?",
+      "ground_truth_answer": "In the instantActions.schema, each action object in the 'actions' array requires three fields: (1) 'actionId' (string) — unique ID to identify the action and map it to the actionState (suggestion: use UUID). (2) 'actionType' (string) — name of the action that identifies its function. (3) 'blockingType' (string) — but for instant actions, this is constrained to an enum with only one allowed value: 'NONE'. This means instant actions always execute in parallel with other activities, including driving. Optional fields include 'actionDescriptor' (string) and 'actionParameters' (array of key-value pair objects).",
+      "ground_truth_contexts": [
+        "instantActions.schema action required: actionId (string), actionType (string), blockingType (string, enum: NONE only). actionParameters is optional, consisting of key-value pair objects."
+      ],
+      "source_section": "instantActions.schema actions definition",
+      "source_file": "json_schemas/instantActions.schema"
+    },
+    {
+      "id": "B-06",
+      "category": "B_json_schema_queries",
+      "difficulty": "hard",
+      "question": "In the VDA 5050 order schema, what fields are required for the 'nodePosition' object, and what are the constraints on the 'theta' and 'allowedDeviationXY' fields?",
+      "ground_truth_answer": "In the order.schema, the 'nodePosition' object requires three fields: 'x' (number, in meters), 'y' (number, in meters), and 'mapId' (string, unique map identification). The optional 'theta' field (number, in radians) defines the absolute orientation of the mobile robot on the node, with a range constrained to minimum -3.14159265359 and maximum 3.14159265359 (i.e., -π to π). The optional 'allowedDeviationXY' is a JSON object that itself requires three fields: 'a' (number, semi-major axis in meters, minimum 0), 'b' (number, semi-minor axis in meters, minimum 0), and 'theta' (number, rotation angle in radians, minimum -1.570796327 to maximum 1.570796327, i.e., -π/2 to π/2). This defines an ellipse centered on the node position within which the robot is considered to have traversed the node.",
+      "ground_truth_contexts": [
+        "order.schema nodePosition: required x (number), y (number), mapId (string). Optional theta: number, rad, min -3.14159, max 3.14159. Optional allowedDeviationXY object: required a (number, m, min 0), b (number, m, min 0), theta (number, rad, min -1.570796327, max 1.570796327)."
+      ],
+      "source_section": "order.schema definitions/node/nodePosition",
+      "source_file": "json_schemas/order.schema"
+    },
+    {
+      "id": "C-01",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "medium",
+      "question": "Looking at the information flow diagram for VDA 5050, what are the main communication participants and what type of information flows between them?",
+      "ground_truth_answer": "The information flow diagram (Figure 1) shows three main participants: the Operator of the DTS, the Fleet Control system, and the Mobile Robot(s). The operator provides basic information to the fleet control during the implementation phase (route definitions, network configuration, mobile robot configuration). During the operational phase, the fleet control sends orders to the mobile robots via the 'order' MQTT topic, including node-edge graph segments and actions. The mobile robots continuously report their status back to the fleet control via the 'state' MQTT topic. Additional communication channels include 'instantActions' (fleet control to robot), 'visualization' (robot to visualization systems), 'connection' (broker/robot to fleet control), 'factsheet' (robot to fleet control), 'zoneSet' (fleet control to robot), and 'responses' (fleet control to robot).",
+      "ground_truth_contexts": [
+        "Section 5.1 General / Figure 1: The information flow diagram shows the operator, fleet control, and mobile robot as participants. Fleet control sends orders and actions; mobile robots report state continuously."
+      ],
+      "source_section": "5.1 General, Figure 1",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "information_flow_VDA5050.png"
+    },
+    {
+      "id": "C-02",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "hard",
+      "question": "Referring to the action state transition diagram, what are all the possible states an action can be in, and from the 'RUNNING' state, what transitions are possible?",
+      "ground_truth_answer": "According to the action state transition diagram (Figure 21), an action can be in the following states: WAITING, INITIALIZING, RUNNING, PAUSED, RETRIABLE, FINISHED, and FAILED. From the 'RUNNING' state, the possible transitions are: (1) to 'PAUSED' — triggered by an external trigger (e.g., pause button, safety field violation). (2) to 'RETRIABLE' — when the action does not complete successfully but is marked as retriable. (3) to 'FAILED' — when the action is aborted via cancelOrder, switch to manual mode, or the action finally failed. (4) to 'FINISHED' — when the action returned the desired result, or possibly after abort via cancelOrder if the action cannot be interrupted and must finish. Notably, there is no transition from RUNNING back to WAITING or to INITIALIZING.",
+      "ground_truth_contexts": [
+        "Section 6.6.9 Action states / Figure 21 / Table 13: Action states include WAITING, INITIALIZING, RUNNING, PAUSED, RETRIABLE, FINISHED, FAILED. From RUNNING: transitions to PAUSED (external trigger), RETRIABLE (failed but retriable), FAILED (cancel/manual/failure), FINISHED (desired result)."
+      ],
+      "source_section": "6.6.9 Action states, Figure 21",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "action_state_transition.png"
+    },
+    {
+      "id": "C-03",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "hard",
+      "question": "Describe the order update acceptance process shown in the process_order_update diagram. What are the key decision points the mobile robot evaluates?",
+      "ground_truth_answer": "The process_order_update diagram (Figure 8) shows the decision flowchart that a mobile robot follows when receiving an order. The key decision points are: (1) Is the received order valid? — checks JSON formatting and data types. (2) Is it a new order or an update to the current order? — compares orderId. (3) If new: Is the mobile robot idle and not waiting for an update? (4) If new: Is the orderUpdateId 0? (5) Is the start node close enough to the current position? (6) If update: Is the orderUpdateId deprecated (less than or equal to current)? (7) Is the update following a cancelOrder? (8) Is the orderUpdateId equal to the current one (duplicate)? (9) Is the update a valid continuation of a still running order? — checks if the first node matches the decision point. (10) Is the update a valid continuation of a previously completed order? Each decision path leads to either acceptance (populate/append new states) or rejection with a specific error type.",
+      "ground_truth_contexts": [
+        "Section 6.1.2 / Figure 8: Shows the process of accepting an order or order update with decision points for validity, new vs. update, idle state, orderUpdateId checks, start node proximity, deprecated updates, post-cancel updates, duplicate detection, and valid continuation checks."
+      ],
+      "source_section": "6.1.2 Orders and order update, Figure 8",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "process_order_update.png"
+    },
+    {
+      "id": "C-04",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "medium",
+      "question": "What does the map distribution process diagram show about the sequence of steps for downloading, enabling, and deleting a map on a mobile robot?",
+      "ground_truth_answer": "The map distribution process diagram (Figure 13) illustrates the three-party communication between fleet control, the mobile robot, and the map server. The sequence is: (1) Fleet control sends a 'downloadMap' instant action to the mobile robot, containing mapId, mapVersion, and mapDownloadLink. (2) The mobile robot initiates a pull/download from the map server using the provided link. (3) The mobile robot reports the download progress via actionStatus (RUNNING → FINISHED/FAILED). (4) After successful download, the map appears in the mobile robot's state 'maps' array with mapStatus 'DISABLED'. (5) Fleet control then sends an 'enableMap' instant action with the mapId and mapVersion. (6) The mobile robot enables the requested map (mapStatus → 'ENABLED') and disables any other versions of the same mapId. (7) To remove a map, fleet control sends a 'deleteMap' instant action, and the mobile robot removes it from the state. The mobile robot shall reject a download if the same mapId/mapVersion combination already exists, reporting a 'DUPLICATE_MAP' error.",
+      "ground_truth_contexts": [
+        "Section 6.3.1 Map distribution / Figure 13: Fleet control initiates downloadMap instant action, mobile robot downloads from map server, map appears as DISABLED in state, fleet control sends enableMap to activate, deleteMap to remove. Duplicate mapId/mapVersion rejected with DUPLICATE_MAP error."
+      ],
+      "source_section": "6.3.1 Map distribution, Figure 13",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "map_distribution_process.png"
+    },
+    {
+      "id": "C-05",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "medium",
+      "question": "What does the cancel order process diagram show about the expected behavior differences between a line-guided mobile robot and a freely navigating mobile robot after receiving a cancelOrder?",
+      "ground_truth_answer": "The cancel order process diagram (Figure 9) shows the contrasting stop behaviors: A line-guided mobile robot, upon receiving cancelOrder, continues to drive until it reaches the next feasible node before stopping, since it follows a predefined trajectory and may not be able to stop safely in between nodes. A freely navigating mobile robot, on the other hand, shall stop as soon as possible at its current position — it does not need to continue to the next node. In both cases, after stopping: scheduled actions are cancelled and reported as 'FAILED', running actions that can be cancelled are also set to 'FAILED', and actions that cannot be cancelled (cancelAllowed = false) continue until completion. The cancelOrder action status reports 'RUNNING' until everything has stopped, then 'FINISHED'. After completion, the robot enters the idle state.",
+      "ground_truth_contexts": [
+        "Section 6.1.3 Order cancellation / Figure 9: Line-guided robots stop at next feasible node. Freely navigating robots stop as soon as possible. Scheduled actions report FAILED, non-cancellable running actions finish naturally. cancelOrder reports FINISHED when all movement and actions stop."
+      ],
+      "source_section": "6.1.3 Order cancellation, Figure 9",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "process_cancel_order.png"
+    },
+    {
+      "id": "C-06",
+      "category": "C_multimodal_diagram_queries",
+      "difficulty": "hard",
+      "question": "Referring to the handling multiple actions diagram, explain how the mobile robot processes a queue of actions with mixed blocking types (NONE, SOFT, SINGLE, HARD).",
+      "ground_truth_answer": "The handling multiple actions diagram (Figure 11) illustrates the algorithm for action queue processing: When the mobile robot arrives at a point with new actions (node, edge, or action zone), actions are enqueued in the order defined by the actions array. The queue is processed continuously: (1) Actions with blocking type 'NONE' or 'SOFT' are collected for parallel execution. (2) If a 'SOFT' or 'HARD' action is in the queue, the mobile robot stops automatic driving. (3) If a 'SINGLE' or 'HARD' action is to be executed, all previously collected parallel actions must reach 'FINISHED' or 'FAILED' state before the SINGLE/HARD action can start. (4) 'FINISHED' or 'FAILED' actions are removed from the queue. (5) Once no more 'SOFT' or 'HARD' actions remain in the queue, the mobile robot can resume automatic driving. This creates a pipelining effect where NONE actions run freely in parallel with driving, SOFT actions group together without driving, SINGLE actions block other actions but allow driving, and HARD actions are completely exclusive.",
+      "ground_truth_contexts": [
+        "Section 6.2.2 / Figure 11: Actions are enqueued in order. NONE/SOFT collected for parallel execution. SOFT/HARD stop automatic driving. SINGLE/HARD require all parallel actions to finish first. FINISHED/FAILED removed from queue. Driving resumes when no SOFT/HARD remain."
+      ],
+      "source_section": "6.2.2 Action blocking types and sequence, Figure 11",
+      "source_file": "VDA5050_EN.md",
+      "expected_diagram": "handling_multiple_actions.png"
+    }
+  ]
+}
