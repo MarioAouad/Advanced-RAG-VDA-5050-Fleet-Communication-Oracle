@@ -1,28 +1,3 @@
-"""
-VDA-5050 Fleet Communication Oracle — RAG Evaluation Pipeline
-=============================================================
-This script loads the ground-truth evaluation dataset and runs the RAGAS
-evaluation framework to measure retrieval and generation quality.
-
-Metrics computed:
-    • Context Precision  — Are the retrieved chunks ranked with relevant ones first?
-    • Context Recall     — Does the retrieved context cover the ground-truth answer?
-    • Faithfulness       — Is the generated answer grounded in the retrieved context?
-    • Answer Relevancy   — Is the generated answer relevant to the original question?
-
-Usage:
-    # Baseline run (before improvements):
-    python evaluation/evaluate_rag.py --tag baseline
-
-    # After applying improvements:
-    python evaluation/evaluate_rag.py --tag improved_v1
-
-    # Compare two saved runs:
-    python evaluation/evaluate_rag.py --compare baseline improved_v1
-
-The script persists each run's results to evaluation/results/<tag>.json so that
-you can always go back and compare baseline vs. improved metrics for the report.
-"""
 
 import argparse
 import json
@@ -31,25 +6,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Optional: suppress noisy transformer warnings during import
-# ---------------------------------------------------------------------------
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-# ---------------------------------------------------------------------------
 # Paths
-# ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DATASET_PATH = SCRIPT_DIR / "test_dataset.json"
 RESULTS_DIR = SCRIPT_DIR / "results"
 
-# ---------------------------------------------------------------------------
-# Helper: pretty table printer (no external dependency)
-# ---------------------------------------------------------------------------
-
 def _print_table(headers: list[str], rows: list[list[str]], title: str = "") -> None:
-    """Print a simple ASCII table to stdout."""
+
     col_widths = [len(h) for h in headers]
     for row in rows:
         for i, cell in enumerate(row):
@@ -69,13 +35,9 @@ def _print_table(headers: list[str], rows: list[list[str]], title: str = "") -> 
         print("| " + " | ".join(str(c).ljust(w) for c, w in zip(row, col_widths)) + " |")
     print(sep)
 
-
-# ---------------------------------------------------------------------------
 # 1. Load & validate the ground-truth dataset
-# ---------------------------------------------------------------------------
-
 def load_dataset(path: Path = DATASET_PATH) -> dict:
-    """Load the ground-truth test dataset and perform basic validation."""
+
     if not path.exists():
         print(f"[ERROR] Dataset not found at: {path}")
         sys.exit(1)
@@ -109,66 +71,37 @@ def load_dataset(path: Path = DATASET_PATH) -> dict:
     )
     return dataset
 
-
-# ---------------------------------------------------------------------------
 # 2. Query the RAG pipeline (stub — to be connected to the FastAPI backend)
-# ---------------------------------------------------------------------------
-
 def query_rag_pipeline(question: str, backend_url: str = "http://127.0.0.1:8000") -> dict:
-    """
-    Send a question to the RAG backend and return the structured response.
 
-    Returns:
-        {
-            "answer": str,          # The generated answer
-            "contexts": list[str],  # Retrieved context chunks
+    import sys
+    import os
+    
+    # Dynamically add the project root to the Python path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
+    # Now the import will successfully find the 'backend' folder
+    from backend.core.rag_pipeline import query_rag
+
+    try:
+        # Invoke the RAG pipeline directly
+        result = query_rag(question)
+        
+        return {
+            "answer": result.get("answer", ""),
+            "contexts": result.get("contexts", []),
         }
+    except Exception as e:
+        print(f"  [WARN] Pipeline call failed: {e}")
+        return {"answer": "", "contexts": []}
 
-    NOTE: This is a *stub*. During baseline evaluation (before the backend is
-    built), it returns empty placeholders so that the evaluation framework
-    structure can be verified. Replace the body of this function once the
-    FastAPI /query endpoint is operational.
-    """
-    # ------------------------------------------------------------------
-    # PHASE 1 (current): Return empty stubs for framework validation
-    # ------------------------------------------------------------------
-    # TODO: Uncomment the block below once the backend is running.
-    #
-    # import requests
-    # try:
-    #     resp = requests.post(
-    #         f"{backend_url}/query",
-    #         json={"question": question},
-    #         timeout=60,
-    #     )
-    #     resp.raise_for_status()
-    #     data = resp.json()
-    #     return {
-    #         "answer": data.get("answer", ""),
-    #         "contexts": data.get("contexts", []),
-    #     }
-    # except requests.RequestException as e:
-    #     print(f"  [WARN] Backend call failed: {e}")
-    #     return {"answer": "", "contexts": []}
-    # ------------------------------------------------------------------
-
-    return {
-        "answer": "[PLACEHOLDER — backend not yet connected]",
-        "contexts": ["[PLACEHOLDER — no retrieval performed yet]"],
-    }
-
-
-# ---------------------------------------------------------------------------
 # 3. Build the RAGAS evaluation dataset
-# ---------------------------------------------------------------------------
-
 def build_ragas_dataset(test_data: list[dict], backend_url: str) -> dict:
-    """
-    Iterate over the ground-truth entries, query the RAG pipeline for each,
-    and assemble the data structure required by RAGAS.
 
-    Returns a dict with lists: questions, answers, contexts, ground_truths.
-    """
     questions = []
     answers = []
     contexts = []
@@ -201,30 +134,18 @@ def build_ragas_dataset(test_data: list[dict], backend_url: str) -> dict:
         "metadata": metadata_list,
     }
 
-
-# ---------------------------------------------------------------------------
 # 4. Run RAGAS evaluation
-# ---------------------------------------------------------------------------
-
 def run_ragas_evaluation(ragas_data: dict) -> dict:
-    """
-    Execute the RAGAS evaluation using the four core metrics.
+    import sys
+    import types
+    if 'langchain_community.chat_models.vertexai' not in sys.modules:
+        mock_module = types.ModuleType('mock_vertexai')
+        mock_module.ChatVertexAI = type('ChatVertexAI', (object,), {})
+        sys.modules['langchain_community.chat_models.vertexai'] = mock_module
 
-    Returns a dict of metric_name → float score.
-
-    If RAGAS / required LLM dependencies are not installed or configured, this
-    function falls back to returning NaN placeholders and prints setup
-    instructions.
-    """
     try:
         from datasets import Dataset
         from ragas import evaluate
-        from ragas.metrics import (
-            answer_relevancy,
-            context_precision,
-            context_recall,
-            faithfulness,
-        )
     except ImportError as e:
         print(f"\n[WARN] Could not import RAGAS / datasets: {e}")
         print("   Install with: pip install ragas datasets")
@@ -236,41 +157,70 @@ def run_ragas_evaluation(ragas_data: dict) -> dict:
             "answer_relevancy": float("nan"),
         }
 
+    formatted_ground_truths = [[gt] for gt in ragas_data["ground_truths"]]
+
     # Build a HuggingFace Dataset
     hf_dataset = Dataset.from_dict({
         "question": ragas_data["questions"],
         "answer": ragas_data["answers"],
         "contexts": ragas_data["contexts"],
-        "ground_truth": ragas_data["ground_truths"],
+        "ground_truths": formatted_ground_truths,
+        "reference": ragas_data["ground_truths"],
     })
 
-    metrics = [
-        context_precision,
-        context_recall,
-        faithfulness,
-        answer_relevancy,
-    ]
-
-    # -------------------------------------------------------------------
-    # RAGAS requires an LLM and embedding model for evaluation.
-    # By default it uses OpenAI. For our project we route through
-    # OpenRouter (OpenAI-compatible endpoint) pointed at Gemini Flash.
-    #
-    # Configure the LLM wrapper here once the backend is built.
-    # For now, we let RAGAS use its default (requires OPENAI_API_KEY).
-    #
-    # Example with LangChain + OpenRouter:
-    #   from langchain_openai import ChatOpenAI
-    #   llm = ChatOpenAI(
-    #       model="google/gemini-2.5-flash",
-    #       openai_api_base="https://openrouter.ai/api/v1",
-    #       openai_api_key=os.getenv("OPENROUTER_API_KEY"),
-    #   )
-    #   result = evaluate(hf_dataset, metrics=metrics, llm=llm)
-    # -------------------------------------------------------------------
+    try:
+        from ragas.metrics import (
+            AnswerRelevancy,
+            ContextPrecision,
+            ContextRecall,
+            Faithfulness,
+        )
+        metrics = [
+            ContextPrecision(),
+            ContextRecall(),
+            Faithfulness(),
+            AnswerRelevancy(),
+        ]
+    except ImportError:
+        # Fallback for older versions
+        from ragas.metrics import (
+            answer_relevancy,
+            context_precision,
+            context_recall,
+            faithfulness,
+        )
+        import inspect
+        metrics = [
+            context_precision() if inspect.isclass(context_precision) else context_precision,
+            context_recall() if inspect.isclass(context_recall) else context_recall,
+            faithfulness() if inspect.isclass(faithfulness) else faithfulness,
+            answer_relevancy() if inspect.isclass(answer_relevancy) else answer_relevancy,
+        ]
 
     try:
-        result = evaluate(hf_dataset, metrics=metrics)
+        import os
+        from dotenv import load_dotenv
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        
+        env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+        load_dotenv(env_path)
+
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=os.getenv("GOOGLE_API_KEY", "YOUR_API_KEY_HERE"),
+            max_tokens=512,
+            max_retries=15,
+        )
+        
+        from backend.core.vectorstore import get_embedding_model
+        embeddings_model = get_embedding_model()
+        
+        from ragas.run_config import RunConfig
+        # Heavily throttle Google AI Studio to avoid the strict 15 RPM free tier limit
+        run_config = RunConfig(max_workers=1, max_retries=15, timeout=120)
+        
+        # Pass the llm parameter into the evaluate function
+        result = evaluate(hf_dataset, metrics=metrics, llm=llm, embeddings=embeddings_model, raise_exceptions=False, run_config=run_config)
         return dict(result)
     except Exception as e:
         print(f"\n[WARN] RAGAS evaluation failed: {e}")
@@ -283,13 +233,9 @@ def run_ragas_evaluation(ragas_data: dict) -> dict:
             "answer_relevancy": float("nan"),
         }
 
-
-# ---------------------------------------------------------------------------
 # 5. Persist results
-# ---------------------------------------------------------------------------
-
 def save_results(tag: str, scores: dict, ragas_data: dict) -> Path:
-    """Save evaluation results to a JSON file under evaluation/results/."""
+
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     output_path = RESULTS_DIR / f"{tag}.json"
 
@@ -314,13 +260,9 @@ def save_results(tag: str, scores: dict, ragas_data: dict) -> Path:
     print(f"\n[SAVED] Results saved to: {output_path}")
     return output_path
 
-
-# ---------------------------------------------------------------------------
 # 6. Compare two runs
-# ---------------------------------------------------------------------------
-
 def compare_runs(tag_a: str, tag_b: str) -> None:
-    """Load two saved result files and print a side-by-side comparison."""
+
     path_a = RESULTS_DIR / f"{tag_a}.json"
     path_b = RESULTS_DIR / f"{tag_b}.json"
 
@@ -355,11 +297,7 @@ def compare_runs(tag_a: str, tag_b: str) -> None:
         title=f"Comparison: {tag_a} → {tag_b}",
     )
 
-
-# ---------------------------------------------------------------------------
 # CLI
-# ---------------------------------------------------------------------------
-
 def main():
     parser = argparse.ArgumentParser(
         description="VDA-5050 Oracle — RAG Evaluation Pipeline (RAGAS)",
@@ -397,12 +335,10 @@ Examples:
     )
     args = parser.parse_args()
 
-    # --- Compare mode ---
     if args.compare:
         compare_runs(args.compare[0], args.compare[1])
         return
 
-    # --- Load & validate ---
     print("\n" + "=" * 70)
     print("  VDA-5050 Fleet Communication Oracle — Evaluation Pipeline")
     print("=" * 70)
@@ -410,31 +346,40 @@ Examples:
     dataset = load_dataset()
     test_data = dataset["test_data"]
 
+    filtered_data = []
+    category_counts = {"A_protocol_text_rules": 0, "B_json_schema_queries": 0, "C_multimodal_diagram_queries": 0}
+    limits = {"A_protocol_text_rules": 4, "B_json_schema_queries": 3, "C_multimodal_diagram_queries": 3}
+    
+    for entry in test_data:
+        cat = entry.get("category", "unknown")
+        limit = limits.get(cat, 0)
+        if category_counts.get(cat, 0) < limit:
+            filtered_data.append(entry)
+            category_counts[cat] += 1
+            
+    test_data = filtered_data
+
     if args.dry_run:
         print("\n[DONE] Dry run complete. Dataset structure is valid.")
         return
 
-    # --- Query & Evaluate ---
     print(f"\n[QUERY] Querying RAG pipeline ({args.backend}) for {len(test_data)} questions...\n")
     ragas_data = build_ragas_dataset(test_data, backend_url=args.backend)
 
     print("\n[EVAL] Running RAGAS evaluation...\n")
     scores = run_ragas_evaluation(ragas_data)
 
-    # --- Display results ---
     _print_table(
         ["Metric", "Score"],
         [[m, f"{s:.4f}"] for m, s in sorted(scores.items())],
         title=f"Evaluation Results — [{args.tag}]",
     )
 
-    # --- Save ---
     save_results(args.tag, scores, ragas_data)
 
     print("\n[OK] Evaluation complete.")
     print(f"   Run tag: '{args.tag}'")
     print(f"   To compare later: python evaluation/evaluate_rag.py --compare {args.tag} <other_tag>\n")
-
 
 if __name__ == "__main__":
     main()

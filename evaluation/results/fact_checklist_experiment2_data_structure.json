@@ -1,0 +1,226 @@
+{
+  "tag": "experiment2_data_structure",
+  "timestamp": "2026-07-28T18:22:00.307620+00:00",
+  "evaluation_method": "fact_checklist",
+  "summary": {
+    "avg_fact_accuracy": 77.6,
+    "avg_retrieval_hit_rate": 95.0,
+    "questions_evaluated": 20
+  },
+  "per_question": [
+    {
+      "id": "A-01",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 6,
+      "keywords_found": 6
+    },
+    {
+      "id": "A-02",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 4,
+      "keywords_found": 4
+    },
+    {
+      "id": "A-03",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 6,
+      "keywords_found": 6
+    },
+    {
+      "id": "A-04",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 5,
+      "keywords_found": 5
+    },
+    {
+      "id": "A-05",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 5,
+      "keywords_found": 5
+    },
+    {
+      "id": "A-06",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 6,
+      "keywords_found": 6
+    },
+    {
+      "id": "A-07",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 7,
+      "keywords_found": 7
+    },
+    {
+      "id": "A-08",
+      "category": "A_protocol_text_rules",
+      "fact_accuracy": 42.9,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "OUTDATED_ORDER_UPDATE",
+        "SAME_ORDER_UPDATE_ID",
+        "OTHER_ORDER_ACTIVE",
+        "NO_ROUTE_TO_TARGET"
+      ],
+      "keywords_total": 7,
+      "keywords_found": 3
+    },
+    {
+      "id": "B-01",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 9,
+      "keywords_found": 9
+    },
+    {
+      "id": "B-02",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 0.0,
+      "retrieval_hit_rate": 0.0,
+      "missed_keywords": [
+        "nodeId",
+        "sequenceId",
+        "released",
+        "actions",
+        "string",
+        "integer",
+        "boolean"
+      ],
+      "keywords_total": 7,
+      "keywords_found": 0
+    },
+    {
+      "id": "B-03",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 8,
+      "keywords_found": 8
+    },
+    {
+      "id": "B-04",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 5,
+      "keywords_found": 5
+    },
+    {
+      "id": "B-05",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 40.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "actionId",
+        "actionType",
+        "NONE"
+      ],
+      "keywords_total": 5,
+      "keywords_found": 2
+    },
+    {
+      "id": "B-06",
+      "category": "B_json_schema_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 6,
+      "keywords_found": 6
+    },
+    {
+      "id": "C-01",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 33.3,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "order",
+        "state",
+        "instantActions",
+        "visualization"
+      ],
+      "keywords_total": 6,
+      "keywords_found": 2
+    },
+    {
+      "id": "C-02",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 7,
+      "keywords_found": 7
+    },
+    {
+      "id": "C-03",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 60.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "orderId",
+        "idle"
+      ],
+      "keywords_total": 5,
+      "keywords_found": 3
+    },
+    {
+      "id": "C-04",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 16.7,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "enableMap",
+        "deleteMap",
+        "mapId",
+        "DISABLED",
+        "ENABLED"
+      ],
+      "keywords_total": 6,
+      "keywords_found": 1
+    },
+    {
+      "id": "C-05",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 60.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [
+        "FAILED",
+        "FINISHED"
+      ],
+      "keywords_total": 5,
+      "keywords_found": 3
+    },
+    {
+      "id": "C-06",
+      "category": "C_multimodal_diagram_queries",
+      "fact_accuracy": 100.0,
+      "retrieval_hit_rate": 100.0,
+      "missed_keywords": [],
+      "keywords_total": 7,
+      "keywords_found": 7
+    }
+  ]
+}
